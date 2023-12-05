@@ -90,3 +90,5 @@ vendor/
 /build/
 /dist/
 /out/
+/.vscode/
+/.backupvscode/
