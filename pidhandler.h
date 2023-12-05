@@ -2,7 +2,7 @@
 #define PIDHANDLER_H
 
 #include <windows.h>
-#include <tlhelp32>
+#include <tlhelp32.h>
 #include <stdbool.h>
 
 // Function to get the process ID (PID) by name

