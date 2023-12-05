@@ -6,13 +6,16 @@
 #include "reverse_shell.h"
 #include "pidhandler.h"
 
+// Excluding the function we are injecting into
+#ifndef NO_WINCRYPT
+#include <wincrypt.h>
+#endif
+
 // Constants
 #define PSIZE 1024
 
 // Mutex name
 #define MUTEX_NAME TEXT("WindowsProc")
-
-
 
 /*
 
