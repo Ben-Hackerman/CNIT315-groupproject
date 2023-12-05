@@ -24,7 +24,7 @@ void checkMutex() {
     if (hMutex != NULL) {
         if (GetLastError() == ERROR_ALREADY_EXISTS) {
             // Mutex already exists, indicating the payload has been executed
-            ExitProcess();
+            CustomExitProcess();
         }
     }
 
