@@ -1,15 +1,14 @@
 #include <stdlib.h>
+
+// windows includes
+#define NOCRYPT // excludes library we are injecting into
 #include <windows.h>
 #include <tlhelp32.h>
 
+// local includes
 #include "mapinject.h"
-#include "reverse_shell.h"
 #include "pidhandler.h"
 
-// Excluding the function we are injecting into
-#ifndef NO_WINCRYPT
-#include <wincrypt.h>
-#endif
 
 // Constants
 #define PSIZE 1024
